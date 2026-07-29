@@ -296,14 +296,16 @@ setTestCases([{ input: "", expected_output: "" }]);
       {selectedProblem.description || "No description added for this problem yet."}
     </p>
     {selectedProblem.test_cases && selectedProblem.test_cases[0] && (
-      <div style={{ marginTop: "12px" }}>
-        <p className="ai-feedback-label">Example</p>
-        <p className="ai-feedback-text">
-          Input: <code>{selectedProblem.test_cases[0].input}</code><br />
-          Output: <code>{selectedProblem.test_cases[0].expected_output}</code>
-        </p>
-      </div>
-    )}
+  <div style={{ marginTop: "12px" }}>
+    <p className="ai-feedback-label">Example</p>
+    <p className="ai-feedback-text" style={{ marginBottom: "6px" }}>
+      Input: <code>{selectedProblem.test_cases[0].input}</code>
+    </p>
+    <p className="ai-feedback-text">
+      Output: <code>{selectedProblem.test_cases[0].expected_output}</code>
+    </p>
+  </div>
+)}
   </div>
 )}
 
