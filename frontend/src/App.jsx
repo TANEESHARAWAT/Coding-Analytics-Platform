@@ -31,6 +31,7 @@ function App() {
   const [pConcept, setPConcept] = useState("");
   const [pDifficulty, setPDifficulty] = useState("Easy");
   const [testCases, setTestCases] = useState([{ input: "", expected_output: "" }]);
+  const [pDescription, setPDescription] = useState("");
   const [problems, setProblems] = useState([]);
   const [stats, setStats] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
@@ -113,12 +114,15 @@ function App() {
     e.preventDefault();
     if (!pId || !pTitle || !pConcept) return;
     await axios.post(`${API}/problems`, {
-      problem_id: pId,
-      title: pTitle,
-      concept: pConcept,
-      difficulty: pDifficulty,
-      test_cases: testCases,
-    });
+  problem_id: pId,
+  title: pTitle,
+  concept: pConcept,
+  difficulty: pDifficulty,
+  description: pDescription,
+  test_cases: testCases,
+});
+setPId(""); setPTitle(""); setPConcept(""); setPDescription("");
+setTestCases([{ input: "", expected_output: "" }]);
     setPId(""); setPTitle(""); setPConcept("");
     setTestCases([{ input: "", expected_output: "" }]);
     fetchProblems();
@@ -144,6 +148,7 @@ function App() {
     if (pct >= 33) return "#ffb454";
     return "#ff5470";
   }
+  const selectedProblem = problems.find((p) => p.problem_id === problemId);
 
   return (
     <>
@@ -183,11 +188,11 @@ function App() {
               </div>
               <div className="guide-step">
                 <span className="guide-step-num">4</span>
-                <span>Check <strong style={{color: "var(--text)"}}>progress.3d</strong> for your concept mastery and <strong style={{color: "var(--text)"}}>next.sh</strong> for personalized recommendations.</span>
+                <span>Check <strong style={{color: "var(--text)"}}>Progress</strong> for your concept mastery and <strong style={{color: "var(--text)"}}>Next</strong> for personalized recommendations.</span>
               </div>
               <div className="guide-step">
                 <span className="guide-step-num">5</span>
-                <span>Visit <strong style={{color: "var(--text)"}}>profile.exe</strong> to track achievements and level up as you solve more problems.</span>
+                <span>Visit <strong style={{color: "var(--text)"}}>Profile</strong> to track achievements and level up as you solve more problems.</span>
               </div>
             </div>
           )}
@@ -240,22 +245,22 @@ function App() {
 
           <div className="tab-bar">
             <button className={`tab-btn ${tab === "submit" ? "active" : ""}`} onClick={() => setTab("submit")}>
-              <span className="tab-dot"></span> submit.cpp
+              <span className="tab-dot"></span> Submit
             </button>
             <button className={`tab-btn ${tab === "addproblem" ? "active" : ""}`} onClick={() => setTab("addproblem")}>
-              <span className="tab-dot"></span> problems.json
+              <span className="tab-dot"></span> Problems
             </button>
             <button className={`tab-btn ${tab === "progress" ? "active" : ""}`} onClick={() => { setTab("progress"); fetchStats(); }}>
-              <span className="tab-dot"></span> progress.3d
+              <span className="tab-dot"></span> Progress
             </button>
             <button className={`tab-btn ${tab === "recommend" ? "active" : ""}`} onClick={() => { setTab("recommend"); fetchRecommendation(); }}>
-              <span className="tab-dot"></span> next.sh
+              <span className="tab-dot"></span> Next
             </button>
             <button className={`tab-btn ${tab === "achievements" ? "active" : ""}`} onClick={() => setTab("achievements")}>
-              <span className="tab-dot"></span> profile.exe
+              <span className="tab-dot"></span> Profile
             </button>
             <button className={`tab-btn ${tab === "history" ? "active" : ""}`} onClick={() => setTab("history")}>
-              <span className="tab-dot"></span> history.log
+              <span className="tab-dot"></span> History
             </button>
           </div>
 
@@ -271,20 +276,38 @@ function App() {
                       onBlur={handleStudentIdBlur}
                     />
                     <select value={problemId} onChange={(e) => setProblemId(e.target.value)}>
-                      <option value="">
-                        {problems.length === 0 ? "no problems seeded yet" : "select problem"}
-                      </option>
-                      {problems.map((p) => (
-                        <option key={p._id} value={p.problem_id}>{p.problem_id} — {p.title}</option>
-                      ))}
-                    </select>
-                    <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-                      <option value="cpp">cpp</option>
-                      <option value="python">python</option>
-                    </select>
-                  </div>
+  <option value="">
+    {problems.length === 0 ? "no problems seeded yet" : "select problem"}
+  </option>
+  {problems.map((p) => (
+    <option key={p._id} value={p.problem_id}>{p.problem_id} — {p.title}</option>
+  ))}
+</select>
+<select value={language} onChange={(e) => setLanguage(e.target.value)}>
+  <option value="cpp">cpp</option>
+  <option value="python">python</option>
+</select>
+</div>
 
-                  <CodeEditor code={code} setCode={setCode} language={language} />
+{selectedProblem && (
+  <div className="ai-feedback" style={{ marginBottom: "16px" }}>
+    <p className="ai-feedback-label">{selectedProblem.problem_id} — {selectedProblem.title}</p>
+    <p className="ai-feedback-text">
+      {selectedProblem.description || "No description added for this problem yet."}
+    </p>
+    {selectedProblem.test_cases && selectedProblem.test_cases[0] && (
+      <div style={{ marginTop: "12px" }}>
+        <p className="ai-feedback-label">Example</p>
+        <p className="ai-feedback-text">
+          Input: <code>{selectedProblem.test_cases[0].input}</code><br />
+          Output: <code>{selectedProblem.test_cases[0].expected_output}</code>
+        </p>
+      </div>
+    )}
+  </div>
+)}
+
+<CodeEditor code={code} setCode={setCode} language={language} />
 
                   <div style={{ marginTop: "14px" }}>
                     <button type="submit" className="btn-primary" disabled={isSubmitting}>
@@ -356,7 +379,7 @@ function App() {
                 <p className="muted" style={{ marginTop: "8px" }}>No submissions yet — solve a problem above to see it here.</p>
               )}
               {(studentId ? history.filter((r) => r.student_id === studentId) : history).length > 0 && (
-                <p className="muted" style={{ marginTop: "8px" }}>See full history in <strong style={{color: "var(--pink)"}}>history.log</strong></p>
+                <p className="muted" style={{ marginTop: "8px" }}>See full history in <strong style={{color: "var(--pink)"}}>History</strong></p>
               )}
             </>
           )}
@@ -371,13 +394,21 @@ function App() {
                 <div className="field-row">
                   <input placeholder="concept (e.g. Arrays)" value={pConcept} onChange={(e) => setPConcept(e.target.value)} />
                   <select value={pDifficulty} onChange={(e) => setPDifficulty(e.target.value)}>
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                  </select>
-                </div>
+  <option value="Easy">Easy</option>
+  <option value="Medium">Medium</option>
+  <option value="Hard">Hard</option>
+</select>
+</div>
 
-                <h3 className="section-heading" style={{ marginTop: "20px", fontSize: "15px" }}>test cases</h3>
+<textarea
+  placeholder="Full question description, written in plain sentences (like LeetCode)"
+  value={pDescription}
+  onChange={(e) => setPDescription(e.target.value)}
+  rows="5"
+  style={{ width: "100%", marginBottom: "12px" }}
+/>
+
+<h3 className="section-heading" style={{ marginTop: "20px", fontSize: "15px" }}>test cases</h3>
                 {testCases.map((tc, i) => (
                   <div key={i} className="testcase-row">
                     <textarea placeholder="input" value={tc.input} onChange={(e) => updateTestCase(i, "input", e.target.value)} rows="3" style={{ flex: 1 }} />
@@ -426,7 +457,7 @@ function App() {
           {tab === "achievements" && (
             <div className="panel">
               <h2 className="section-heading" style={{ marginTop: 0 }}>achievements</h2>
-              {!studentId && <p className="muted">enter a student_id in submit.cpp first.</p>}
+              {!studentId && <p className="muted">enter a student_id in the Submit tab first.</p>}
               {studentId && (
                 <div className="achievement-grid">
                   {achievements.map((a) => (

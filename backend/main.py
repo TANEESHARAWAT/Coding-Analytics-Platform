@@ -31,6 +31,7 @@ class Problem(BaseModel):
     title: str
     concept: str
     difficulty: str
+    description: Optional[str] = None
     judge_type: str = "io"
     test_cases: list[TestCase] = []
     class_name: Optional[str] = None
