@@ -7,7 +7,7 @@ import BackgroundFX from "./BackgroundFX";
 import { computeXP, computeLevel, computeAchievements } from "./gamification";
 import "./App.css";
 
-const API = "http://localhost:8000";
+const API = "https://coding-analytics-platform-backend.onrender.com";
 
 function VerdictBadge({ verdict }) {
   const cls = ["AC", "WA", "CE", "RE"].includes(verdict) ? `badge-${verdict}` : "badge-default";
