@@ -268,56 +268,60 @@ setTestCases([{ input: "", expected_output: "" }]);
             <>
               <div className="panel">
                 <form onSubmit={handleSubmit}>
-                  <div className="field-row">
-                    <input
-                      placeholder="student_id"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                      onBlur={handleStudentIdBlur}
-                    />
-                    <select value={problemId} onChange={(e) => setProblemId(e.target.value)}>
-  <option value="">
-    {problems.length === 0 ? "no problems seeded yet" : "select problem"}
-  </option>
-  {problems.map((p) => (
-    <option key={p._id} value={p.problem_id}>{p.problem_id} — {p.title}</option>
-  ))}
-</select>
-<select value={language} onChange={(e) => setLanguage(e.target.value)}>
-  <option value="cpp">cpp</option>
-  <option value="python">python</option>
-</select>
-</div>
+                  <div className="submit-grid">
+                    <div>
+                      <div className="field-row">
+                        <input
+                          placeholder="student_id"
+                          value={studentId}
+                          onChange={(e) => setStudentId(e.target.value)}
+                          onBlur={handleStudentIdBlur}
+                        />
+                        <select value={problemId} onChange={(e) => setProblemId(e.target.value)}>
+                          <option value="">
+                            {problems.length === 0 ? "no problems seeded yet" : "select problem"}
+                          </option>
+                          {problems.map((p) => (
+                            <option key={p._id} value={p.problem_id}>{p.problem_id} — {p.title}</option>
+                          ))}
+                        </select>
+                        <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+                          <option value="cpp">cpp</option>
+                          <option value="python">python</option>
+                        </select>
+                      </div>
 
-{selectedProblem && (
-  <div className="ai-feedback" style={{ marginBottom: "16px" }}>
-    <p className="ai-feedback-label">{selectedProblem.problem_id} — {selectedProblem.title}</p>
-    <p className="ai-feedback-text">
-      {selectedProblem.description || "No description added for this problem yet."}
-    </p>
-    {selectedProblem.test_cases && selectedProblem.test_cases[0] && (
-  <div style={{ marginTop: "12px" }}>
-    <p className="ai-feedback-label">Example</p>
-    <p className="ai-feedback-text" style={{ marginBottom: "6px" }}>
-      Input: <code>{selectedProblem.test_cases[0].input}</code>
-    </p>
-    <p className="ai-feedback-text">
-      Output: <code>{selectedProblem.test_cases[0].expected_output}</code>
-    </p>
-  </div>
-)}
-  </div>
-)}
+                      {selectedProblem && (
+                        <div className="ai-feedback">
+                          <p className="ai-feedback-label">{selectedProblem.problem_id} — {selectedProblem.title}</p>
+                          <p className="ai-feedback-text">
+                            {selectedProblem.description || "No description added for this problem yet."}
+                          </p>
+                          {selectedProblem.test_cases && selectedProblem.test_cases[0] && (
+                            <div style={{ marginTop: "12px" }}>
+                              <p className="ai-feedback-label">Example</p>
+                              <p className="ai-feedback-text" style={{ marginBottom: "6px" }}>
+                                Input: <code>{selectedProblem.test_cases[0].input}</code>
+                              </p>
+                              <p className="ai-feedback-text">
+                                Output: <code>{selectedProblem.test_cases[0].expected_output}</code>
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-<CodeEditor code={code} setCode={setCode} language={language} />
-
-                  <div style={{ marginTop: "14px" }}>
-                    <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                      {isSubmitting ? "running..." : "run & submit"}
-                    </button>
+                    <div>
+                      <CodeEditor code={code} setCode={setCode} language={language} />
+                      <div style={{ marginTop: "14px" }}>
+                        <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                          {isSubmitting ? "running..." : "run & submit"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </form>
-
                 {submitError && (
                   <div className="ai-feedback" style={{ borderLeftColor: "var(--red)" }}>
                     <p className="ai-feedback-label" style={{ color: "var(--red)" }}>error</p>

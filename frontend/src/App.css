@@ -189,6 +189,19 @@ body {
 .field-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
 .field-row > * { flex: 1; min-width: 140px; }
 
+.submit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .submit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 input, select, textarea {
   background: var(--panel-alt);
   border: 1px solid var(--border);
