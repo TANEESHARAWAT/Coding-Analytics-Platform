@@ -234,7 +234,7 @@ setTestCases([{ input: "", expected_output: "" }]);
           {studentId && recommendation && recommendation.target_concept && (
             <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
-              <p className="side-card-title">next up</p>
+              <p className="side-card-title">AI Recommendation</p>
               <p className="side-reco">
                 Focus on <strong>{recommendation.target_concept}</strong>. {recommendation.reason}
               </p>
@@ -374,7 +374,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                       ))}
                     </div>
                     {recommendation && recommendation.target_concept && (
-                      <p className="snapshot-reco">next up: <strong>{recommendation.target_concept}</strong> — {recommendation.reason}</p>
+                      <p className="snapshot-reco">AI recommends: <strong>{recommendation.target_concept}</strong> — {recommendation.reason}</p>
                     )}
                   </div>
                 )}
@@ -465,7 +465,7 @@ setTestCases([{ input: "", expected_output: "" }]);
           {tab === "recommend" && (
             <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
             <div className="panel">
-              <h2 className="section-heading" style={{ marginTop: 0 }}>recommended next steps</h2>
+              <h2 className="section-heading" style={{ marginTop: 0 }}>AI Recommended Next Steps</h2>
               {!recommendation && <p className="muted">loading...</p>}
               {recommendation && !recommendation.target_concept && (
                 <p className="muted">no weak areas detected yet — keep practicing across topics.</p>
@@ -474,7 +474,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <div>
                   <p className="reco-reason">{recommendation.reason}</p>
                   <h3 className="section-heading" style={{ fontSize: "14px" }}>
-                    suggested problems in {recommendation.target_concept}:
+                    AI suggested problems in {recommendation.target_concept}:
                   </h3>
                   {recommendation.recommended_problems.map((p) => (
                     <div key={p.problem_id} className="reco-card">
@@ -493,14 +493,7 @@ setTestCases([{ input: "", expected_output: "" }]);
               <h2 className="section-heading" style={{ marginTop: 0 }}>achievements</h2>
               {!studentId && <p className="muted">enter a student_id in the Submit tab first.</p>}
               {studentId && (
-                <div className="achievement-grid">
-                  {achievements.map((a) => (
-                    <div key={a.id} className={`achievement-card ${a.earned ? "earned" : ""}`}>
-                      <p className="achievement-name">{a.earned ? "✓" : "🔒"} {a.name}</p>
-                      <p className="achievement-desc">{a.desc}</p>
-                    </div>
-                  </div>
-              )}
+                 <div className="achievement-grid">
             </div>
             </BorderGlow>
           )}
