@@ -3,7 +3,8 @@ import axios from "axios";
 import Progress3D from "./Progress3D";
 import CodeEditor from "./CodeEditor";
 import BootSequence from "./BootSequence";
-import BackgroundFX from "./BackgroundFX";
+import Ferrofluid from "./Ferrofluid";
+import BorderGlow from "./BorderGlow";
 import { computeXP, computeLevel, computeAchievements } from "./gamification";
 import "./App.css";
 
@@ -152,9 +153,20 @@ setTestCases([{ input: "", expected_output: "" }]);
 
   return (
     <>
-      <BackgroundFX />
+      <Ferrofluid
+        className="ferro-bg"
+        colors={["#ff4d2e", "#ff8a3d", "#baff29"]}
+        speed={0.4}
+        scale={1.4}
+        turbulence={0.8}
+        glow={2.2}
+        flowDirection="down"
+        mouseInteraction={true}
+        mouseStrength={1}
+      />
       <div className="dashboard-grid">
         <aside className="sidebar">
+          <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
           <div className="side-card">
             <div className="avatar-circle">
               {studentId ? studentId.slice(0, 2).toUpperCase() : "??"}
@@ -170,8 +182,10 @@ setTestCases([{ input: "", expected_output: "" }]);
               </>
             )}
           </div>
+          </BorderGlow>
 
           {!studentId && (
+            <BorderGlow className="guide-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="guide-card">
               <p className="guide-title">Getting Started</p>
               <div className="guide-step">
@@ -195,9 +209,11 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <span>Visit <strong style={{color: "var(--text)"}}>Profile</strong> to track achievements and level up as you solve more problems.</span>
               </div>
             </div>
+            </BorderGlow>
           )}
 
            {studentId && stats.length > 0 && (
+            <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
               <p className="side-card-title">concept mastery</p>
               {stats.map((s) => (
@@ -212,18 +228,22 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </div>
               ))}
             </div>
+            </BorderGlow>
           )}
 
           {studentId && recommendation && recommendation.target_concept && (
+            <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
               <p className="side-card-title">next up</p>
               <p className="side-reco">
                 Focus on <strong>{recommendation.target_concept}</strong>. {recommendation.reason}
               </p>
             </div>
+            </BorderGlow>
           )}
 
           {studentId && (
+            <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
               <p className="side-card-title">achievements</p>
               <div className="side-achievements">
@@ -234,6 +254,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 ))}
               </div>
             </div>
+            </BorderGlow>
           )}
         </aside>
 
@@ -266,6 +287,7 @@ setTestCases([{ input: "", expected_output: "" }]);
 
           {tab === "submit" && (
             <>
+              <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
               <div className="panel">
                 <form onSubmit={handleSubmit}>
                   <div className="submit-grid">
@@ -357,6 +379,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                   </div>
                 )}
               </div>
+              </BorderGlow>
 
               <h2 className="section-heading">Recent Submissions</h2>
               <table className="data-table">
@@ -391,6 +414,7 @@ setTestCases([{ input: "", expected_output: "" }]);
           )}
 
           {tab === "addproblem" && (
+            <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
             <div className="panel">
               <form onSubmit={handleAddProblem}>
                 <div className="field-row">
@@ -427,6 +451,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </div>
               </form>
             </div>
+            </BorderGlow>
           )}
 
           {tab === "progress" && (
@@ -438,6 +463,7 @@ setTestCases([{ input: "", expected_output: "" }]);
           )}
 
           {tab === "recommend" && (
+            <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
             <div className="panel">
               <h2 className="section-heading" style={{ marginTop: 0 }}>recommended next steps</h2>
               {!recommendation && <p className="muted">loading...</p>}
@@ -458,9 +484,11 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </div>
               )}
             </div>
+            </BorderGlow>
           )}
 
           {tab === "achievements" && (
+            <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
             <div className="panel">
               <h2 className="section-heading" style={{ marginTop: 0 }}>achievements</h2>
               {!studentId && <p className="muted">enter a student_id in the Submit tab first.</p>}
@@ -471,10 +499,10 @@ setTestCases([{ input: "", expected_output: "" }]);
                       <p className="achievement-name">{a.earned ? "✓" : "🔒"} {a.name}</p>
                       <p className="achievement-desc">{a.desc}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
               )}
             </div>
+            </BorderGlow>
           )}
           {tab === "history" && (
             <div>

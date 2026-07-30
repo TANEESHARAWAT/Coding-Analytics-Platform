@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 const LINES = [
-  "booting cap_detector kernel...",
+  "booting coding_analytics_platform kernel...",
   "mounting /judge/cpp ................. ok",
   "mounting /judge/python .............. ok",
   "loading concept graph ............... ok",

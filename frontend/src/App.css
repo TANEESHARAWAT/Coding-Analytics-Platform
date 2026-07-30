@@ -29,7 +29,12 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-.bg-fx { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.ferro-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: auto;
+}
 
 .dashboard-grid {
   position: relative;
