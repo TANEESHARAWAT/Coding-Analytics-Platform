@@ -494,9 +494,15 @@ setTestCases([{ input: "", expected_output: "" }]);
               {!studentId && <p className="muted">enter a student_id in the Submit tab first.</p>}
               {studentId && (
                  <div className="achievement-grid">
-            </div>
-            </BorderGlow>
-          )}
+                  {achievements.map((a) => (
+                    <div key={a.id} className={`achievement-card ${a.earned ? "earned" : ""}`}>
+                      <p className="achievement-name">{a.earned ? "✓" : "🔒"} {a.name}</p>
+                      <p className="achievement-desc">{a.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                </BorderGlow>
+              )}
           {tab === "history" && (
             <div>
               <h2 className="section-heading" style={{ marginTop: 0 }}>full submission history</h2>
