@@ -33,6 +33,7 @@ function App() {
   const [pDifficulty, setPDifficulty] = useState("Easy");
   const [testCases, setTestCases] = useState([{ input: "", expected_output: "" }]);
   const [pDescription, setPDescription] = useState("");
+  const [viewingCode, setViewingCode] = useState(null);
   const [problems, setProblems] = useState([]);
   const [stats, setStats] = useState([]);
   const [recommendation, setRecommendation] = useState(null);
@@ -508,6 +509,7 @@ setTestCases([{ input: "", expected_output: "" }]);
           {tab === "history" && (
             <div>
               <h2 className="section-heading" style={{ marginTop: 0 }}>full submission history</h2>
+              <p className="muted" style={{ marginBottom: "10px" }}>Click any row to view the code that was submitted.</p>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -520,7 +522,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </thead>
                 <tbody>
                   {history.map((r) => (
-                    <tr key={r._id}>
+                    <tr key={r._id} onClick={() => setViewingCode(r)} className="history-row-clickable">
                       <td>{r.timestamp}</td>
                       <td>{r.student_id}</td>
                       <td>{r.problem_id}</td>
@@ -531,8 +533,26 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </tbody>
               </table>
               {history.length === 0 && <p className="muted">No submissions recorded yet.</p>}
+
+              {viewingCode && (
+                <div className="ai-feedback" style={{ marginTop: "16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <p className="ai-feedback-label">
+                      {viewingCode.problem_id} — {viewingCode.student_id} — {viewingCode.language} — {viewingCode.timestamp}
+                    </p>
+                    <button type="button" className="btn-ghost" onClick={() => setViewingCode(null)}>close</button>
+                  </div>
+                  <pre className="history-code-view">{viewingCode.code}</pre>
+                  {viewingCode.mistake_analysis && (
+                    <div style={{ marginTop: "10px" }}>
+                      <p className="ai-feedback-label">ai feedback (at time of submission)</p>
+                      <p className="ai-feedback-text">{viewingCode.mistake_analysis}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          )}
+          )}          
         </main>
       </div>
     </>
