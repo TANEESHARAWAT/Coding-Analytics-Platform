@@ -11,9 +11,17 @@ import "./App.css";
 
 const API = "https://coding-analytics-platform-backend.onrender.com";
 
+const VERDICT_LABELS = {
+  AC: "Accepted",
+  WA: "Wrong Answer",
+  CE: "Compile Error",
+  RE: "Runtime Error",
+};
+
 function VerdictBadge({ verdict }) {
   const cls = ["AC", "WA", "CE", "RE"].includes(verdict) ? `badge-${verdict}` : "badge-default";
-  return <span className={`badge ${cls}`}>[{verdict}]</span>;
+  const label = VERDICT_LABELS[verdict] || verdict;
+  return <span className={`badge ${cls}`}>{label}</span>;
 }
 
 function App() {
