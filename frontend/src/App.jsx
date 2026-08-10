@@ -5,6 +5,7 @@ import CodeEditor from "./CodeEditor";
 import BootSequence from "./BootSequence";
 import Ferrofluid from "./Ferrofluid";
 import BorderGlow from "./BorderGlow";
+import LoginPage from "./LoginPage";
 import { computeXP, computeLevel, computeAchievements } from "./gamification";
 import "./App.css";
 
@@ -19,7 +20,10 @@ function App() {
   const [booted, setBooted] = useState(sessionStorage.getItem("capBooted") === "true");
   const [tab, setTab] = useState("submit");
 
-  const [studentId, setStudentId] = useState("");
+  const [token, setToken] = useState(localStorage.getItem("capToken") || null);
+  const [userEmail, setUserEmail] = useState(localStorage.getItem("capEmail") || null);
+  const [authChecked, setAuthChecked] = useState(false);
+
   const [problemId, setProblemId] = useState("");
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("");
@@ -40,9 +44,51 @@ function App() {
   const [submitError, setSubmitError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Attach the token to every outgoing request, and log out automatically on 401
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          handleLogout();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptor);
+  }, [token]);
+
+  const handleAuthSuccess = (newToken, email) => {
+    localStorage.setItem("capToken", newToken);
+    localStorage.setItem("capEmail", email);
+    setToken(newToken);
+    setUserEmail(email);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("capToken");
+    localStorage.removeItem("capEmail");
+    setToken(null);
+    setUserEmail(null);
+    setHistory([]);
+    setStats([]);
+    setRecommendation(null);
+  };
+
   const fetchHistory = async () => {
-    const res = await axios.get(`${API}/history`);
-    setHistory(res.data);
+    try {
+      const res = await axios.get(`${API}/history`);
+      setHistory(res.data);
+    } catch (err) {
+      // 401s are handled globally by the interceptor
+    }
   };
 
   const fetchProblems = async () => {
@@ -50,40 +96,38 @@ function App() {
     setProblems(res.data);
   };
 
-  const fetchStats = async (id) => {
-    const sid = id || studentId;
-    if (!sid) return;
-    const res = await axios.get(`${API}/stats/${sid}`);
-    setStats(res.data);
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get(`${API}/stats`);
+      setStats(res.data);
+    } catch (err) {}
   };
 
-  const fetchRecommendation = async (id) => {
-    const sid = id || studentId;
-    if (!sid) return;
-    const res = await axios.get(`${API}/recommend/${sid}`);
-    setRecommendation(res.data);
+  const fetchRecommendation = async () => {
+    try {
+      const res = await axios.get(`${API}/recommend`);
+      setRecommendation(res.data);
+    } catch (err) {}
   };
 
   useEffect(() => {
-    fetchHistory();
     fetchProblems();
-  }, []);
-
-  const handleStudentIdBlur = () => {
-    if (studentId) {
-      fetchStats(studentId);
-      fetchRecommendation(studentId);
+    if (token) {
+      fetchHistory();
+      fetchStats();
+      fetchRecommendation();
     }
-  };
+    setAuthChecked(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!studentId || !problemId || !code) return;
+    if (!problemId || !code) return;
     setSubmitError(null);
     setIsSubmitting(true);
     try {
       const res = await axios.post(`${API}/submit`, {
-        student_id: studentId,
         problem_id: problemId,
         language,
         code,
@@ -91,10 +135,8 @@ function App() {
       setLastVerdict(res.data.verdict);
       setLastAnalysis(res.data.mistake_analysis);
       fetchHistory();
-      const statsRes = await axios.get(`${API}/stats/${studentId}`);
-      setStats(statsRes.data);
-      const recRes = await axios.get(`${API}/recommend/${studentId}`);
-      setRecommendation(recRes.data);
+      fetchStats();
+      fetchRecommendation();
     } catch (err) {
       setSubmitError("Couldn't reach the server. Make sure the backend is running.");
     } finally {
@@ -116,16 +158,14 @@ function App() {
     e.preventDefault();
     if (!pId || !pTitle || !pConcept) return;
     await axios.post(`${API}/problems`, {
-  problem_id: pId,
-  title: pTitle,
-  concept: pConcept,
-  difficulty: pDifficulty,
-  description: pDescription,
-  test_cases: testCases,
-});
-setPId(""); setPTitle(""); setPConcept(""); setPDescription("");
-setTestCases([{ input: "", expected_output: "" }]);
-    setPId(""); setPTitle(""); setPConcept("");
+      problem_id: pId,
+      title: pTitle,
+      concept: pConcept,
+      difficulty: pDifficulty,
+      description: pDescription,
+      test_cases: testCases,
+    });
+    setPId(""); setPTitle(""); setPConcept(""); setPDescription("");
     setTestCases([{ input: "", expected_output: "" }]);
     fetchProblems();
   };
@@ -141,9 +181,13 @@ setTestCases([{ input: "", expected_output: "" }]);
     );
   }
 
-  const xp = studentId ? computeXP(history, studentId) : 0;
+  if (!token) {
+    return <LoginPage onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  const xp = computeXP(history, userEmail);
   const { level, currentLevelXp, xpToNext } = computeLevel(xp);
-  const achievements = studentId ? computeAchievements(history, studentId) : [];
+  const achievements = computeAchievements(history, userEmail);
 
   function barColor(pct) {
     if (pct >= 66) return "#3ddc97";
@@ -170,50 +214,21 @@ setTestCases([{ input: "", expected_output: "" }]);
           <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
           <div className="side-card">
             <div className="avatar-circle">
-              {studentId ? studentId.slice(0, 2).toUpperCase() : "??"}
+              {userEmail.slice(0, 2).toUpperCase()}
             </div>
-            <p className="side-card-title">{studentId || "no student id"}</p>
-            {studentId && (
-              <>
-                <span className="xp-level-badge" style={{ marginBottom: "8px", display: "inline-block" }}>LVL {level}</span>
-                <div className="xp-bar-track">
-                  <div className="xp-bar-fill" style={{ width: `${(currentLevelXp / xpToNext) * 100}%` }}></div>
-                </div>
-                <p className="xp-label" style={{ marginTop: "6px" }}>{currentLevelXp} / {xpToNext} XP</p>
-              </>
-            )}
+            <p className="side-card-title">{userEmail}</p>
+            <span className="xp-level-badge" style={{ marginBottom: "8px", display: "inline-block" }}>LVL {level}</span>
+            <div className="xp-bar-track">
+              <div className="xp-bar-fill" style={{ width: `${(currentLevelXp / xpToNext) * 100}%` }}></div>
+            </div>
+            <p className="xp-label" style={{ marginTop: "6px" }}>{currentLevelXp} / {xpToNext} XP</p>
+            <button type="button" className="btn-ghost" style={{ marginTop: "12px", width: "100%" }} onClick={handleLogout}>
+              log out
+            </button>
           </div>
           </BorderGlow>
 
-          {!studentId && (
-            <BorderGlow className="guide-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
-            <div className="guide-card">
-              <p className="guide-title">Getting Started</p>
-              <div className="guide-step">
-                <span className="guide-step-num">1</span>
-                <span>Enter a <strong style={{color: "var(--text)"}}>student_id</strong> in the field to the right — this tracks your submissions and progress.</span>
-              </div>
-              <div className="guide-step">
-                <span className="guide-step-num">2</span>
-                <span>Pick a problem from the dropdown, choose your language, and write your solution in the editor.</span>
-              </div>
-              <div className="guide-step">
-                <span className="guide-step-num">3</span>
-                <span>Click <strong style={{color: "var(--text)"}}>run & submit</strong> — you'll get an instant verdict plus AI feedback if something's wrong.</span>
-              </div>
-              <div className="guide-step">
-                <span className="guide-step-num">4</span>
-                <span>Check <strong style={{color: "var(--text)"}}>Progress</strong> for your concept mastery and <strong style={{color: "var(--text)"}}>Next</strong> for personalized recommendations.</span>
-              </div>
-              <div className="guide-step">
-                <span className="guide-step-num">5</span>
-                <span>Visit <strong style={{color: "var(--text)"}}>Profile</strong> to track achievements and level up as you solve more problems.</span>
-              </div>
-            </div>
-            </BorderGlow>
-          )}
-
-           {studentId && stats.length > 0 && (
+           {stats.length > 0 && (
             <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
               <p className="side-card-title">concept mastery</p>
@@ -232,7 +247,7 @@ setTestCases([{ input: "", expected_output: "" }]);
             </BorderGlow>
           )}
 
-          {studentId && recommendation && recommendation.target_concept && (
+          {recommendation && recommendation.target_concept && (
             <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
             <div className="side-card">
               <p className="side-card-title">AI Recommendation</p>
@@ -243,20 +258,18 @@ setTestCases([{ input: "", expected_output: "" }]);
             </BorderGlow>
           )}
 
-          {studentId && (
-            <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
-            <div className="side-card">
-              <p className="side-card-title">achievements</p>
-              <div className="side-achievements">
-                {achievements.map((a) => (
-                  <div key={a.id} className={`side-ach-icon ${a.earned ? "earned" : ""}`} title={a.name}>
-                    {a.earned ? "✓" : "🔒"}
-                  </div>
-                ))}
-              </div>
+          <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
+          <div className="side-card">
+            <p className="side-card-title">achievements</p>
+            <div className="side-achievements">
+              {achievements.map((a) => (
+                <div key={a.id} className={`side-ach-icon ${a.earned ? "earned" : ""}`} title={a.name}>
+                  {a.earned ? "✓" : "🔒"}
+                </div>
+              ))}
             </div>
-            </BorderGlow>
-          )}
+          </div>
+          </BorderGlow>
         </aside>
 
         <main className="main-content">
@@ -294,12 +307,6 @@ setTestCases([{ input: "", expected_output: "" }]);
                   <div className="submit-grid">
                     <div>
                       <div className="field-row">
-                        <input
-                          placeholder="student_id"
-                          value={studentId}
-                          onChange={(e) => setStudentId(e.target.value)}
-                          onBlur={handleStudentIdBlur}
-                        />
                         <select value={problemId} onChange={(e) => setProblemId(e.target.value)}>
                           <option value="">
                             {problems.length === 0 ? "no problems seeded yet" : "select problem"}
@@ -387,17 +394,15 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <thead>
                   <tr>
                     <th>time</th>
-                    <th>student</th>
                     <th>problem</th>
                     <th>lang</th>
                     <th>verdict</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(studentId ? history.filter((r) => r.student_id === studentId) : history).slice(0, 3).map((r) => (
+                  {history.slice(0, 3).map((r) => (
                     <tr key={r._id}>
                       <td>{r.timestamp}</td>
-                      <td>{r.student_id}</td>
                       <td>{r.problem_id}</td>
                       <td>{r.language}</td>
                       <td><VerdictBadge verdict={r.verdict} /></td>
@@ -405,10 +410,10 @@ setTestCases([{ input: "", expected_output: "" }]);
                   ))}
                 </tbody>
               </table>
-              {(studentId ? history.filter((r) => r.student_id === studentId) : history).length === 0 && (
+              {history.length === 0 && (
                 <p className="muted" style={{ marginTop: "8px" }}>No submissions yet — solve a problem above to see it here.</p>
               )}
-              {(studentId ? history.filter((r) => r.student_id === studentId) : history).length > 0 && (
+              {history.length > 0 && (
                 <p className="muted" style={{ marginTop: "8px" }}>See full history in <strong style={{color: "var(--pink)"}}>History</strong></p>
               )}
             </>
@@ -425,21 +430,21 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <div className="field-row">
                   <input placeholder="concept (e.g. Arrays)" value={pConcept} onChange={(e) => setPConcept(e.target.value)} />
                   <select value={pDifficulty} onChange={(e) => setPDifficulty(e.target.value)}>
-  <option value="Easy">Easy</option>
-  <option value="Medium">Medium</option>
-  <option value="Hard">Hard</option>
-</select>
-</div>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
 
-<textarea
-  placeholder="Full question description, written in plain sentences (like LeetCode)"
-  value={pDescription}
-  onChange={(e) => setPDescription(e.target.value)}
-  rows="5"
-  style={{ width: "100%", marginBottom: "12px" }}
-/>
+                <textarea
+                  placeholder="Full question description, written in plain sentences (like LeetCode)"
+                  value={pDescription}
+                  onChange={(e) => setPDescription(e.target.value)}
+                  rows="5"
+                  style={{ width: "100%", marginBottom: "12px" }}
+                />
 
-<h3 className="section-heading" style={{ marginTop: "20px", fontSize: "15px" }}>test cases</h3>
+                <h3 className="section-heading" style={{ marginTop: "20px", fontSize: "15px" }}>test cases</h3>
                 {testCases.map((tc, i) => (
                   <div key={i} className="testcase-row">
                     <textarea placeholder="input" value={tc.input} onChange={(e) => updateTestCase(i, "input", e.target.value)} rows="3" style={{ flex: 1 }} />
@@ -492,17 +497,14 @@ setTestCases([{ input: "", expected_output: "" }]);
             <BorderGlow className="panel-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={24}>
             <div className="panel">
               <h2 className="section-heading" style={{ marginTop: 0 }}>achievements</h2>
-              {!studentId && <p className="muted">enter a student_id in the Submit tab first.</p>}
-              {studentId && (
-                <div className="achievement-grid">
-                  {achievements.map((a) => (
-                    <div key={a.id} className={`achievement-card ${a.earned ? "earned" : ""}`}>
-                      <p className="achievement-name">{a.earned ? "✓" : "🔒"} {a.name}</p>
-                      <p className="achievement-desc">{a.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="achievement-grid">
+                {achievements.map((a) => (
+                  <div key={a.id} className={`achievement-card ${a.earned ? "earned" : ""}`}>
+                    <p className="achievement-name">{a.earned ? "✓" : "🔒"} {a.name}</p>
+                    <p className="achievement-desc">{a.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
             </BorderGlow>
           )}
@@ -514,7 +516,6 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <thead>
                   <tr>
                     <th>time</th>
-                    <th>student</th>
                     <th>problem</th>
                     <th>lang</th>
                     <th>verdict</th>
@@ -524,7 +525,6 @@ setTestCases([{ input: "", expected_output: "" }]);
                   {history.map((r) => (
                     <tr key={r._id} onClick={() => setViewingCode(r)} className="history-row-clickable">
                       <td>{r.timestamp}</td>
-                      <td>{r.student_id}</td>
                       <td>{r.problem_id}</td>
                       <td>{r.language}</td>
                       <td><VerdictBadge verdict={r.verdict} /></td>
@@ -538,7 +538,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 <div className="ai-feedback" style={{ marginTop: "16px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <p className="ai-feedback-label">
-                      {viewingCode.problem_id} — {viewingCode.student_id} — {viewingCode.language} — {viewingCode.timestamp}
+                      {viewingCode.problem_id} — {viewingCode.language} — {viewingCode.timestamp}
                     </p>
                     <button type="button" className="btn-ghost" onClick={() => setViewingCode(null)}>close</button>
                   </div>
@@ -552,7 +552,7 @@ setTestCases([{ input: "", expected_output: "" }]);
                 </div>
               )}
             </div>
-          )}          
+          )}
         </main>
       </div>
     </>

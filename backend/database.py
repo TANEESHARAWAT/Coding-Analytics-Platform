@@ -8,3 +8,4 @@ client = MongoClient(os.getenv("MONGO_URI"))
 db = client["cap_detector"]
 submissions_collection = db["submissions"]
 problems_collection = db["problems"]
+users_collection = db["users"]
