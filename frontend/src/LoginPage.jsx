@@ -6,6 +6,7 @@ const API = "https://coding-analytics-platform-backend.onrender.com";
 
 function LoginPage({ onAuthSuccess }) {
   const [mode, setMode] = useState("login"); // "login" | "signup"
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -24,8 +25,9 @@ function LoginPage({ onAuthSuccess }) {
     setLoading(true);
     try {
       const endpoint = mode === "login" ? "/login" : "/signup";
-      const res = await axios.post(`${API}${endpoint}`, { email, password });
-      onAuthSuccess(res.data.token, res.data.email);
+      const payload = mode === "login" ? { email, password } : { name, email, password };
+      const res = await axios.post(`${API}${endpoint}`, payload);
+      onAuthSuccess(res.data.token, res.data.email, res.data.name);
     } catch (err) {
       const detail = err.response?.data?.detail;
       if (Array.isArray(detail)) {
@@ -73,6 +75,16 @@ function LoginPage({ onAuthSuccess }) {
           </div>
 
           <form onSubmit={handleSubmit}>
+            {mode === "signup" && (
+              <input
+                type="text"
+                placeholder="Full name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="auth-input"
+              />
+            )}
             <input
               type="email"
               placeholder="Email address"

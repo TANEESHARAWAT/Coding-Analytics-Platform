@@ -20,6 +20,7 @@ app.add_middleware(
 
 
 class SignupRequest(BaseModel):
+    name: str
     email: EmailStr
     password: str
 
@@ -56,6 +57,9 @@ class Problem(BaseModel):
 @app.post("/signup")
 def signup(req: SignupRequest):
     email = req.email.lower()
+    name = req.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Name is required")
     if len(req.password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     existing = users_collection.find_one({"email": email})
@@ -63,11 +67,12 @@ def signup(req: SignupRequest):
         raise HTTPException(status_code=400, detail="An account with this email already exists")
     users_collection.insert_one({
         "email": email,
+        "name": name,
         "password_hash": hash_password(req.password),
         "created_at": datetime.now(),
     })
     token = create_token(email)
-    return {"token": token, "email": email}
+    return {"token": token, "email": email, "name": name}
 
 
 @app.post("/login")
@@ -77,7 +82,8 @@ def login(req: LoginRequest):
     if not user or not verify_password(req.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     token = create_token(email)
-    return {"token": token, "email": email}
+    name = user.get("name") or email
+    return {"token": token, "email": email, "name": name}
 
 
 @app.post("/problems")

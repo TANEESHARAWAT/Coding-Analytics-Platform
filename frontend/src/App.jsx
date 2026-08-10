@@ -30,6 +30,7 @@ function App() {
 
   const [token, setToken] = useState(localStorage.getItem("capToken") || null);
   const [userEmail, setUserEmail] = useState(localStorage.getItem("capEmail") || null);
+  const [userName, setUserName] = useState(localStorage.getItem("capName") || null);
   const [authChecked, setAuthChecked] = useState(false);
 
   const [problemId, setProblemId] = useState("");
@@ -73,18 +74,22 @@ function App() {
     return () => axios.interceptors.response.eject(interceptor);
   }, [token]);
 
-  const handleAuthSuccess = (newToken, email) => {
+  const handleAuthSuccess = (newToken, email, name) => {
     localStorage.setItem("capToken", newToken);
     localStorage.setItem("capEmail", email);
+    localStorage.setItem("capName", name || email);
     setToken(newToken);
     setUserEmail(email);
+    setUserName(name || email);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("capToken");
     localStorage.removeItem("capEmail");
+    localStorage.removeItem("capName");
     setToken(null);
     setUserEmail(null);
+    setUserName(null);
     setHistory([]);
     setStats([]);
     setRecommendation(null);
@@ -222,9 +227,10 @@ function App() {
           <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
           <div className="side-card">
             <div className="avatar-circle">
-              {userEmail.slice(0, 2).toUpperCase()}
+              {userName.slice(0, 2).toUpperCase()}
             </div>
-            <p className="side-card-title">{userEmail}</p>
+            <p className="side-card-title" style={{ marginBottom: "2px" }}>{userName}</p>
+            <p className="muted" style={{ fontSize: "11px", marginBottom: "10px" }}>{userEmail}</p>
             <span className="xp-level-badge" style={{ marginBottom: "8px", display: "inline-block" }}>LVL {level}</span>
             <div className="xp-bar-track">
               <div className="xp-bar-fill" style={{ width: `${(currentLevelXp / xpToNext) * 100}%` }}></div>
