@@ -30,7 +30,7 @@ function App() {
 
   const [token, setToken] = useState(localStorage.getItem("capToken") || null);
   const [userEmail, setUserEmail] = useState(localStorage.getItem("capEmail") || null);
-  const [userName, setUserName] = useState(localStorage.getItem("capName") || null);
+  const [userName, setUserName] = useState(localStorage.getItem("capName") || localStorage.getItem("capEmail") || null);
   const [authChecked, setAuthChecked] = useState(false);
 
   const [problemId, setProblemId] = useState("");
