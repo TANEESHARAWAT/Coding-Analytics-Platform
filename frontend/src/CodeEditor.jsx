@@ -19,10 +19,11 @@ function CodeEditor({ code, setCode, language }) {
         highlight={(c) => highlight(c, grammar, grammarName)}
         padding={16}
         style={{
-          fontFamily: '"JetBrains Mono", monospace',
-          fontSize: 13,
-          minHeight: 220,
-        }}
+  fontFamily: '"JetBrains Mono", monospace',
+  fontSize: 13,
+  minHeight: "100%",
+  minWidth: "100%",
+}}
         placeholder="// paste your solution here"
       />
     </div>
