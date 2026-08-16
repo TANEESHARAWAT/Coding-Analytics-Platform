@@ -227,7 +227,7 @@ function App() {
           <BorderGlow className="side-card-glow" glowColor="14 100 59" colors={["#ff4d2e", "#ff8a3d", "#baff29"]} borderRadius={10} glowRadius={20}>
           <div className="side-card">
             <div className="avatar-circle">
-              {userName.slice(0, 2).toUpperCase()}
+              {(userName || userEmail || "?").slice(0, 2).toUpperCase()}
             </div>
             <p className="side-card-title" style={{ marginBottom: "2px" }}>{userName}</p>
             <p className="muted" style={{ fontSize: "11px", marginBottom: "10px" }}>{userEmail}</p>
