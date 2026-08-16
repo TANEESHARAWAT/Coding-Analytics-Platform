@@ -211,9 +211,7 @@ body {
 }
 
 .submit-grid .code-editor-wrap {
-  flex: 1;
-  overflow-y: auto;
-  max-height: 480px;
+  overflow: auto;
 }
 
 @media (max-width: 800px) {
@@ -247,7 +245,10 @@ input::placeholder, textarea::placeholder { color: var(--text-faint); }
   background: var(--panel-alt);
   border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
+  resize: both;
+  min-width: 280px;
+  min-height: 220px;
   font-family: 'JetBrains Mono', monospace;
 }
 .code-editor-wrap:focus-within { border-color: var(--pink); box-shadow: 0 0 0 3px #ff2e8822; }
